@@ -348,6 +348,7 @@
     let plants = [];
     let quadrats = [];
     let latestStats = {};
+    const TEACHER_PASSWORD = '0609'; // 정답 보기 비밀번호
 
     function rand(min, max) { return Math.random() * (max - min) + min; }
     function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
@@ -604,13 +605,13 @@
       document.getElementById('oneQuadratArea').textContent = QUADRAT_AREA.toFixed(1);
       document.getElementById('sampleArea').textContent = sampleArea.toFixed(1);
       document.getElementById('totalFound').textContent = totalFound;
-      document.getElementById('feedback').innerHTML = '값을 입력한 뒤 <b>정답 확인</b>을 눌러보세요. 오차 ±0.1까지 정답으로 인정합니다.';
+      document.getElementById('feedback').innerHTML = '개체수부터 직접 세어서 입력해 보세요! 오차 ±0.1까지 정답으로 인정합니다.';
 
       Object.values(stats).forEach(s => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>${symbolHTML(s.sp)} ${s.sp.name}</td>
-          <td class="readonly-cell">${s.count}</td>
+          <td><input data-key="${s.sp.key}" data-field="count" placeholder="직접 세기" /></td>
           <td class="readonly-cell">${s.cover.toFixed(1)}%</td>
           <td><input data-key="${s.sp.key}" data-field="density" placeholder="입력" /></td>
           <td><input data-key="${s.sp.key}" data-field="frequency" placeholder="입력" /></td>
@@ -655,10 +656,16 @@
         }
       });
 
-      document.getElementById('feedback').innerHTML = `정답 확인 결과: <b>${correct} / ${total}</b>개 정답입니다. 빈칸은 ${blank}개입니다.<br />초록색은 정답, 붉은색은 다시 계산해 볼 값입니다.`;
+      document.getElementById('feedback').innerHTML = `정답 확인 결과: <b>${correct} / ${total}</b>개 정답입니다. 빈칸은 ${blank}개입니다.<br />개체수도 직접 세어 입력하는 방식입니다.<br />초록색은 정답, 붉은색은 다시 계산해 볼 값입니다.`;
     }
 
     function showAnswers() {
+      const password = prompt('정답 보기를 위한 비밀번호를 입력하세요.');
+      if (password !== TEACHER_PASSWORD) {
+        document.getElementById('feedback').innerHTML = '비밀번호가 맞지 않아 정답을 표시하지 않았습니다.';
+        return;
+      }
+
       const inputs = document.querySelectorAll('#resultTable input');
       inputs.forEach(input => {
         const key = input.dataset.key;
