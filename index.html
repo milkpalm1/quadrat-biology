@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>방형구 생태 조사 시뮬레이터</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f4f7f2;
+      color: #1f2a1f;
+    }
+    header {
+      padding: 18px 24px;
+      background: linear-gradient(135deg, #2f7d32, #76a85b);
+      color: white;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    header h1 { margin: 0; font-size: 26px; }
+    header p { margin: 6px 0 0; opacity: 0.95; }
+    main {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+      padding: 18px;
+      max-width: 1520px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 6px 20px rgba(40, 70, 40, 0.12);
+      padding: 16px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    button, select, input {
+      border: 1px solid #cfdcc9;
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 9px 12px;
+      font-size: 14px;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 700;
+      transition: 0.15s;
+    }
+    button:hover { transform: translateY(-1px); background: #eef7ea; }
+    .primary { background: #2f7d32; color: white; border-color: #2f7d32; }
+    .primary:hover { background: #276a2a; }
+    .danger { background: #fff3ef; border-color: #e8b8aa; }
+    .answer { background: #f2f7ff; border-color: #b8c9e8; }
+    label { font-size: 14px; font-weight: 700; }
+    canvas {
+      width: 100%;
+      max-width: 1100px;
+      aspect-ratio: 1 / 1;
+      display: block;
+      border-radius: 18px;
+      background: #ecf4e7;
+      border: 2px solid #d6e4cf;
+      margin: 0 auto;
+      cursor: crosshair;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #526052;
+      line-height: 1.5;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .symbol {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    th, td {
+      border-bottom: 1px solid #e6eee2;
+      padding: 7px 5px;
+      text-align: center;
+    }
+    th {
+      background: #eef7ea;
+      font-weight: 800;
+    }
+    tr:last-child td { border-bottom: none; }
+    td input {
+      width: 72px;
+      padding: 6px 6px;
+      text-align: center;
+      border-radius: 9px;
+    }
+    .readonly-cell {
+      background: #f7fbf5;
+      font-weight: 700;
+    }
+    .correct { background: #e9f8e9 !important; border-color: #65ad65 !important; }
+    .wrong { background: #fff0ed !important; border-color: #df7a68 !important; }
+    .formula {
+      background: #f6faf3;
+      border-left: 5px solid #76a85b;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 12px;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .mini {
+      background: #f6faf3;
+      border-radius: 14px;
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #e2ecd9;
+      min-height: 76px;
+    }
+    .mini b { display: block; font-size: 18px; margin-top: 3px; }
+    .small { font-size: 12px; color: #657265; }
+    .species-panel, .calculator {
+      margin-bottom: 14px;
+      background: #f8fbf5;
+      border: 1px solid #e0ead8;
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .species-panel h3, .calculator h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+    .species-row {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr 0.9fr 0.7fr;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+    .species-row input[type="color"] {
+      padding: 2px;
+      height: 39px;
+      width: 100%;
+    }
+    .species-row input, .species-row select { width: 100%; }
+    .species-head {
+      font-size: 12px;
+      font-weight: 800;
+      color: #5d6b5a;
+      margin-bottom: 5px;
+    }
+    .calc-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: center;
+    }
+    #calcInput { width: 100%; }
+    #calcResult {
+      margin-top: 8px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: white;
+      border: 1px solid #dfe9d8;
+      min-height: 39px;
+      font-weight: 800;
+    }
+    #feedback {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      background: #f7fbf5;
+      border: 1px solid #e0ead8;
+      line-height: 1.5;
+    }
+    .table-wrap { overflow-x: auto; }
+    @media (max-width: 1050px) {
+      main { grid-template-columns: 1fr; }
+      .species-row { grid-template-columns: 1fr 0.7fr 0.8fr 0.6fr; }
+      .mini-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>방형구 생태 조사 시뮬레이터</h1>
+    <p>분포를 관찰하고, 학생이 직접 밀도·빈도·상대값·중요치를 계산해 보는 수업용 프로그램입니다.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="species-panel">
+        <h3>종 설정</h3>
+        <div class="species-row species-head">
+          <div>종 이름</div><div>색</div><div>모양</div><div>크기</div>
+        </div>
+        <div class="species-row">
+          <input id="name0" value="토끼풀 A" />
+          <input id="color0" type="color" value="#e74c3c" />
+          <select id="shape0"><option value="circle">원형</option><option value="square">정사각형</option><option value="triangle">삼각형</option></select>
+          <input id="size0" type="number" min="5" max="25" value="9" />
+        </div>
+        <div class="species-row">
+          <input id="name1" value="민들레 B" />
+          <input id="color1" type="color" value="#3498db" />
+          <select id="shape1"><option value="circle">원형</option><option value="square" selected>정사각형</option><option value="triangle">삼각형</option></select>
+          <input id="size1" type="number" min="5" max="25" value="12" />
+        </div>
+        <div class="species-row">
+          <input id="name2" value="강아지풀 C" />
+          <input id="color2" type="color" value="#f1c40f" />
+          <select id="shape2"><option value="circle">원형</option><option value="square">정사각형</option><option value="triangle" selected>삼각형</option></select>
+          <input id="size2" type="number" min="5" max="25" value="10" />
+        </div>
+        <button onclick="applySpeciesSettings()">종 설정 적용하기</button>
+        <span class="small"> 설정을 적용하면 새 분포가 만들어집니다.</span>
+      </div>
+
+      <div class="toolbar">
+        <button class="primary" onclick="generatePlants()">랜덤 분포 만들기</button>
+        <button onclick="autoQuadrats()">방형구 자동 배치</button>
+        <button onclick="clearQuadrats()" class="danger">방형구 지우기</button>
+        <label>분포:</label>
+        <select id="pattern" onchange="generatePlants()">
+          <option value="random">랜덤 분포</option>
+          <option value="cluster">군집 분포</option>
+          <option value="uniform">균등 분포</option>
+        </select>
+        <label>개체 수:</label>
+        <input id="plantCount" type="number" min="30" max="240" value="120" style="width:80px" onchange="generatePlants()" />
+        <label>화면 확대:</label>
+        <input id="zoomSlider" type="range" min="70" max="180" value="100" oninput="updateZoom()" />
+      </div>
+
+      <canvas id="field" width="800" height="800"></canvas>
+      <div class="legend" id="legend"></div>
+
+      <p class="hint">
+        사용법: <b>캔버스를 클릭</b>하면 방형구가 하나 설치됩니다. 방형구 안에 들어온 생물을 기준으로 개체수와 피도가 계산됩니다.<br />
+        ※ 피도는 각 생물을 단순 도형으로 보고, 방형구 안에 중심이 들어온 생물의 도형 면적 합으로 계산했습니다.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2 style="margin:0 0 8px">조사 결과</h2>
+      <div class="mini-grid">
+        <div class="mini">방형구 수<b id="qCount">0</b></div>
+        <div class="mini">방형구 하나의 크기<b id="oneQuadratArea">0</b><span class="small">㎡</span></div>
+        <div class="mini">전체 조사 면적<b id="sampleArea">0</b><span class="small">㎡</span></div>
+        <div class="mini">전체 개체수<b id="totalFound">0</b></div>
+      </div>
+
+      <div class="calculator">
+        <h3>계산기</h3>
+        <div class="calc-row">
+          <input id="calcInput" placeholder="예: 12/8 또는 33.3+25+41.7" onkeydown="if(event.key==='Enter') runCalculator()" />
+          <button onclick="runCalculator()">계산</button>
+          <button onclick="clearCalculator()">지우기</button>
+        </div>
+        <div id="calcResult">결과가 여기에 표시됩니다.</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="answer" onclick="checkAnswers()">정답 확인</button>
+        <button onclick="showAnswers()">정답 보기</button>
+        <button onclick="resetStudentInputs()">입력값 지우기</button>
+      </div>
+
+      <div class="table-wrap">
+        <table id="resultTable">
+          <thead>
+            <tr>
+              <th>종</th>
+              <th>개체수</th>
+              <th>피도</th>
+              <th>밀도</th>
+              <th>빈도</th>
+              <th>상대밀도</th>
+              <th>상대빈도</th>
+              <th>상대피도</th>
+              <th>중요치</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="feedback">값을 입력한 뒤 <b>정답 확인</b>을 눌러보세요. 오차 ±0.1까지 정답으로 인정합니다.</div>
+
+      <div class="formula">
+        <b>계산식</b><br />
+        밀도 = 특정 종의 개체수 ÷ 전체 조사 면적<br />
+        빈도 = 특정 종이 출현한 방형구 수 ÷ 전체 방형구 수 × 100<br />
+        피도 = 특정 종이 덮은 면적 ÷ 전체 조사 면적 × 100 <span class="small">(프로그램이 제공)</span><br />
+        상대밀도 = 특정 종 밀도 ÷ 전체 밀도 합 × 100<br />
+        상대빈도 = 특정 종 빈도 ÷ 전체 빈도 합 × 100<br />
+        상대피도 = 특정 종 피도 ÷ 전체 피도 합 × 100<br />
+        중요치 = 상대밀도 + 상대빈도 + 상대피도
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('field');
+    let currentZoom = 1;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const FIELD_AREA = 100; // 전체 조사구 10m × 10m = 100㎡
+    const QUADRAT_SIZE = 160;
+    const QUADRAT_AREA = 4; // 방형구 하나의 실제 크기 = 2m × 2m = 4㎡
+    const TOLERANCE = 0.1;
+
+    let species = [
+      { key: 'S1', name: '토끼풀 A', color: '#e74c3c', shape: 'circle', size: 9 },
+      { key: 'S2', name: '민들레 B', color: '#3498db', shape: 'square', size: 12 },
+      { key: 'S3', name: '강아지풀 C', color: '#f1c40f', shape: 'triangle', size: 10 }
+    ];
+
+    let plants = [];
+    let quadrats = [];
+    let latestStats = {};
+
+    function rand(min, max) { return Math.random() * (max - min) + min; }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function applySpeciesSettings() {
+      readSpeciesInputs();
+      generatePlants();
+    }
+
+    function readSpeciesInputs() {
+      species = [0, 1, 2].map(i => ({
+        key: `S${i + 1}`,
+        name: document.getElementById(`name${i}`).value.trim() || `종 ${i + 1}`,
+        color: document.getElementById(`color${i}`).value,
+        shape: document.getElementById(`shape${i}`).value,
+        size: Number(document.getElementById(`size${i}`).value) || 10
+      }));
+      updateLegend();
+    }
+
+    function chooseSpecies() {
+      const r = Math.random();
+      if (r < 0.42) return species[0];
+      if (r < 0.72) return species[1];
+      return species[2];
+    }
+
+    function generatePlants() {
+      readSpeciesInputs();
+      plants = [];
+      quadrats = [];
+      const count = Number(document.getElementById('plantCount').value) || 120;
+      const pattern = document.getElementById('pattern').value;
+
+      if (pattern === 'random') {
+        for (let i = 0; i < count; i++) addPlant(rand(25, W - 25), rand(25, H - 25));
+      }
+
+      if (pattern === 'cluster') {
+        const centers = [
+          { x: rand(120, 300), y: rand(120, 300) },
+          { x: rand(500, 690), y: rand(120, 300) },
+          { x: rand(260, 550), y: rand(500, 700) }
+        ];
+        for (let i = 0; i < count; i++) {
+          const c = centers[Math.floor(Math.random() * centers.length)];
+          addPlant(clamp(c.x + rand(-95, 95), 25, W - 25), clamp(c.y + rand(-95, 95), 25, H - 25));
+        }
+      }
+
+      if (pattern === 'uniform') {
+        const cols = Math.ceil(Math.sqrt(count));
+        const gap = W / cols;
+        for (let i = 0; i < count; i++) {
+          const row = Math.floor(i / cols);
+          const col = i % cols;
+          addPlant(clamp(col * gap + gap / 2 + rand(-14, 14), 25, W - 25), clamp(row * gap + gap / 2 + rand(-14, 14), 25, H - 25));
+        }
+      }
+
+      draw();
+      calculate();
+    }
+
+    function addPlant(x, y) {
+      const sp = chooseSpecies();
+      plants.push({ x, y, sp, size: sp.size });
+    }
+
+    function autoQuadrats() {
+      quadrats = [
+        { x: 80, y: 90 },
+        { x: 560, y: 110 },
+        { x: 300, y: 315 },
+        { x: 105, y: 545 },
+        { x: 555, y: 560 }
+      ];
+      draw();
+      calculate();
+    }
+
+    function clearQuadrats() {
+      quadrats = [];
+      draw();
+      calculate();
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const scaleY = H / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      quadrats.push({
+        x: clamp(x - QUADRAT_SIZE / 2, 0, W - QUADRAT_SIZE),
+        y: clamp(y - QUADRAT_SIZE / 2, 0, H - QUADRAT_SIZE)
+      });
+      draw();
+      calculate();
+    });
+
+    function plantInQuadrat(p, q) {
+      return p.x >= q.x && p.x <= q.x + QUADRAT_SIZE && p.y >= q.y && p.y <= q.y + QUADRAT_SIZE;
+    }
+
+    function isInAnyQuadrat(p) {
+      return quadrats.some(q => plantInQuadrat(p, q));
+    }
+
+    function shapeArea(p) {
+      if (p.sp.shape === 'circle') return Math.PI * p.size * p.size;
+      if (p.sp.shape === 'square') return (p.size * 2) * (p.size * 2);
+      if (p.sp.shape === 'triangle') return (Math.sqrt(3) / 4) * (p.size * 2) * (p.size * 2);
+      return Math.PI * p.size * p.size;
+    }
+
+    function drawShape(x, y, size, shape, color, selected) {
+      ctx.beginPath();
+      if (shape === 'circle') {
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+      } else if (shape === 'square') {
+        ctx.rect(x - size, y - size, size * 2, size * 2);
+      } else if (shape === 'triangle') {
+        ctx.moveTo(x, y - size * 1.2);
+        ctx.lineTo(x - size * 1.15, y + size);
+        ctx.lineTo(x + size * 1.15, y + size);
+        ctx.closePath();
+      }
+      ctx.fillStyle = color;
+      ctx.globalAlpha = selected ? 1 : 0.55;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = selected ? '#111' : 'rgba(0,0,0,0.2)';
+      ctx.lineWidth = selected ? 2.5 : 1;
+      ctx.stroke();
+    }
+
+    function symbolHTML(sp) {
+      if (sp.shape === 'circle') {
+        return `<span class="symbol"><svg width="18" height="18"><circle cx="9" cy="9" r="7" fill="${sp.color}" stroke="rgba(0,0,0,0.35)" stroke-width="1.5"/></svg></span>`;
+      }
+      if (sp.shape === 'square') {
+        return `<span class="symbol"><svg width="18" height="18"><rect x="3" y="3" width="12" height="12" fill="${sp.color}" stroke="rgba(0,0,0,0.35)" stroke-width="1.5"/></svg></span>`;
+      }
+      return `<span class="symbol"><svg width="18" height="18"><polygon points="9,2 2,16 16,16" fill="${sp.color}" stroke="rgba(0,0,0,0.35)" stroke-width="1.5"/></svg></span>`;
+    }
+
+    function updateLegend() {
+      const legend = document.getElementById('legend');
+      legend.innerHTML = species.map(sp => `<div class="legend-item">${symbolHTML(sp)}${sp.name}</div>`).join('') +
+        `<div class="legend-item"><span style="display:inline-block;width:20px;height:20px;border:3px solid #111;background:rgba(255,255,255,0.2)"></span>방형구</div>`;
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = '#d7e5d0';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const pos = i * W / 10;
+        ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, H); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, pos); ctx.lineTo(W, pos); ctx.stroke();
+      }
+      ctx.fillStyle = '#61715d';
+      ctx.font = '14px system-ui';
+      ctx.fillText('전체 조사구: 10m × 10m', 16, 24);
+    }
+
+    function draw() {
+      updateLegend();
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#ecf4e7';
+      ctx.fillRect(0, 0, W, H);
+      drawGrid();
+
+      for (const p of plants) {
+        drawShape(p.x, p.y, p.size, p.sp.shape, p.sp.color, isInAnyQuadrat(p));
+      }
+
+      quadrats.forEach((q, i) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        ctx.fillRect(q.x, q.y, QUADRAT_SIZE, QUADRAT_SIZE);
+        ctx.strokeStyle = '#111';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(q.x, q.y, QUADRAT_SIZE, QUADRAT_SIZE);
+        ctx.fillStyle = '#111';
+        ctx.font = 'bold 18px system-ui';
+        ctx.fillText(`Q${i + 1}`, q.x + 8, q.y + 24);
+      });
+    }
+
+    function calculate() {
+      const tbody = document.querySelector('#resultTable tbody');
+      tbody.innerHTML = '';
+
+      const qCount = quadrats.length;
+      const sampleArea = qCount * QUADRAT_AREA;
+      const stats = {};
+
+      species.forEach(sp => {
+        stats[sp.key] = {
+          sp,
+          count: 0,
+          appearedQuadrats: 0,
+          coverAreaPx: 0,
+          density: 0,
+          frequency: 0,
+          cover: 0,
+          relDensity: 0,
+          relFrequency: 0,
+          relCover: 0,
+          importance: 0
+        };
+      });
+
+      if (qCount > 0) {
+        for (const q of quadrats) {
+          const appeared = new Set();
+          for (const p of plants) {
+            if (plantInQuadrat(p, q)) {
+              const s = stats[p.sp.key];
+              s.count++;
+              s.coverAreaPx += shapeArea(p);
+              appeared.add(p.sp.key);
+            }
+          }
+          appeared.forEach(key => stats[key].appearedQuadrats++);
+        }
+      }
+
+      let totalDensity = 0;
+      let totalFrequency = 0;
+      let totalCover = 0;
+      let totalFound = 0;
+
+      Object.values(stats).forEach(s => {
+        totalFound += s.count;
+        s.density = sampleArea ? s.count / sampleArea : 0;
+        s.frequency = qCount ? (s.appearedQuadrats / qCount) * 100 : 0;
+        s.cover = sampleArea ? (s.coverAreaPx / (qCount * QUADRAT_SIZE * QUADRAT_SIZE)) * 100 : 0;
+        totalDensity += s.density;
+        totalFrequency += s.frequency;
+        totalCover += s.cover;
+      });
+
+      Object.values(stats).forEach(s => {
+        s.relDensity = totalDensity ? (s.density / totalDensity) * 100 : 0;
+        s.relFrequency = totalFrequency ? (s.frequency / totalFrequency) * 100 : 0;
+        s.relCover = totalCover ? (s.cover / totalCover) * 100 : 0;
+        s.importance = s.relDensity + s.relFrequency + s.relCover;
+      });
+
+      latestStats = stats;
+
+      document.getElementById('qCount').textContent = qCount;
+      document.getElementById('oneQuadratArea').textContent = QUADRAT_AREA.toFixed(1);
+      document.getElementById('sampleArea').textContent = sampleArea.toFixed(1);
+      document.getElementById('totalFound').textContent = totalFound;
+      document.getElementById('feedback').innerHTML = '값을 입력한 뒤 <b>정답 확인</b>을 눌러보세요. 오차 ±0.1까지 정답으로 인정합니다.';
+
+      Object.values(stats).forEach(s => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${symbolHTML(s.sp)} ${s.sp.name}</td>
+          <td class="readonly-cell">${s.count}</td>
+          <td class="readonly-cell">${s.cover.toFixed(1)}%</td>
+          <td><input data-key="${s.sp.key}" data-field="density" placeholder="입력" /></td>
+          <td><input data-key="${s.sp.key}" data-field="frequency" placeholder="입력" /></td>
+          <td><input data-key="${s.sp.key}" data-field="relDensity" placeholder="입력" /></td>
+          <td><input data-key="${s.sp.key}" data-field="relFrequency" placeholder="입력" /></td>
+          <td><input data-key="${s.sp.key}" data-field="relCover" placeholder="입력" /></td>
+          <td><input data-key="${s.sp.key}" data-field="importance" placeholder="입력" /></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function parseStudentValue(value) {
+      if (!value.trim()) return NaN;
+      return Number(value.replace('%', '').trim());
+    }
+
+    function checkAnswers() {
+      const inputs = document.querySelectorAll('#resultTable input');
+      let correct = 0;
+      let total = 0;
+      let blank = 0;
+
+      inputs.forEach(input => {
+        const key = input.dataset.key;
+        const field = input.dataset.field;
+        const student = parseStudentValue(input.value);
+        const answer = latestStats[key][field];
+        total++;
+
+        input.classList.remove('correct', 'wrong');
+        if (Number.isNaN(student)) {
+          blank++;
+          input.classList.add('wrong');
+          return;
+        }
+        if (Math.abs(student - answer) <= TOLERANCE) {
+          correct++;
+          input.classList.add('correct');
+        } else {
+          input.classList.add('wrong');
+        }
+      });
+
+      document.getElementById('feedback').innerHTML = `정답 확인 결과: <b>${correct} / ${total}</b>개 정답입니다. 빈칸은 ${blank}개입니다.<br />초록색은 정답, 붉은색은 다시 계산해 볼 값입니다.`;
+    }
+
+    function showAnswers() {
+      const inputs = document.querySelectorAll('#resultTable input');
+      inputs.forEach(input => {
+        const key = input.dataset.key;
+        const field = input.dataset.field;
+        input.value = latestStats[key][field].toFixed(1);
+        input.classList.remove('wrong');
+        input.classList.add('correct');
+      });
+      document.getElementById('feedback').innerHTML = '정답을 표에 표시했습니다. 학생 풀이 후 확인용으로 사용하면 좋아요.';
+    }
+
+    function resetStudentInputs() {
+      const inputs = document.querySelectorAll('#resultTable input');
+      inputs.forEach(input => {
+        input.value = '';
+        input.classList.remove('correct', 'wrong');
+      });
+      document.getElementById('feedback').innerHTML = '입력값을 지웠습니다. 다시 계산해 보세요.';
+    }
+
+    function runCalculator() {
+      const input = document.getElementById('calcInput');
+      const result = document.getElementById('calcResult');
+      const expression = input.value.trim();
+
+      if (!expression) {
+        result.textContent = '식을 입력해 주세요.';
+        return;
+      }
+
+      if (!/^[0-9+\-*/().\s%]+$/.test(expression)) {
+        result.textContent = '숫자와 +, -, *, /, (, ), % 만 사용할 수 있어요.';
+        return;
+      }
+
+      try {
+        const value = Function('"use strict"; return (' + expression + ')')();
+        if (!Number.isFinite(value)) throw new Error('계산 불가');
+        result.textContent = `결과: ${Number(value.toFixed(4))}`;
+      } catch (e) {
+        result.textContent = '계산식을 다시 확인해 주세요.';
+      }
+    }
+
+    function clearCalculator() {
+      document.getElementById('calcInput').value = '';
+      document.getElementById('calcResult').textContent = '결과가 여기에 표시됩니다.';
+    }
+
+    function updateZoom() {
+      const slider = document.getElementById('zoomSlider');
+      currentZoom = slider.value / 100;
+      canvas.style.transform = `scale(${currentZoom})`;
+      canvas.style.transformOrigin = 'top center';
+      canvas.style.marginBottom = `${(currentZoom - 1) * 350}px`;
+    }
+
+    generatePlants();
+    autoQuadrats();
+    updateZoom();
+  </script>
+</body>
+</html>
