@@ -737,6 +737,10 @@ function getDominantByImportanceValue(){
   return Object.keys(score).sort((a,b)=>score[b]-score[a])[0];
 }
 
+function getActualDominantSpecies(){
+  return 'species1';
+}
+
 function speciesName(code){
   return code==='species1'?'A종':code==='species2'?'B종':'C종';
 }
@@ -806,17 +810,49 @@ function submitAnswer(){
 
   const answer=document.getElementById('answerSpecies').value;
   const reason=document.getElementById('reason').value.trim()||'근거를 입력하지 않았습니다.';
-  const dominant=getDominantByImportanceValue();
+  const sampleDominant=getDominantByImportanceValue();
+  const actualDominant=getActualDominantSpecies();
 
-  if(answer!==dominant){
+  if(answer!==sampleDominant){
     alert('실패했습니다. 다시 도전하세요.');
     const finalResult=document.getElementById('finalResult');
     finalResult.style.display='block';
     finalResult.innerHTML=`
       <b>❌ 우점종 판단 실패</b><br><br>
       제출한 답: ${speciesName(answer)}<br>
+      조사 자료로 계산한 우점종: ${speciesName(sampleDominant)}<br>
       입력한 근거: ${reason}<br><br>
-      우점종 판단을 다시 할 수 있습니다. 계산값과 근거를 확인한 뒤 재도전하세요.
+      계산 결과와 판단을 다시 확인한 뒤 재도전하세요.
+    `;
+    return;
+  }
+
+  if(answer!==actualDominant && records.length<4){
+    alert('조사 결과로는 맞게 판단했지만, 실제 우점종과 다릅니다. 조사 방형구 횟수를 늘려주세요.');
+    const finalResult=document.getElementById('finalResult');
+    finalResult.style.display='block';
+    finalResult.innerHTML=`
+      <b>⚠️ 표본 조사 결과와 실제 우점종이 다릅니다.</b><br><br>
+      제출한 답: ${speciesName(answer)}<br>
+      현재 조사 자료로 계산한 우점종: ${speciesName(sampleDominant)}<br>
+      실제 생태계 우점종: ${speciesName(actualDominant)}<br>
+      현재 조사한 방형구 수: ${records.length}개<br><br>
+      조사 결과만 보면 판단은 맞지만, 조사 횟수가 부족해 실제 우점종과 다르게 나타났습니다.<br>
+      조사 방형구 횟수를 늘린 뒤 다시 판단하세요.
+    `;
+    return;
+  }
+
+  if(answer!==actualDominant){
+    alert('실패했습니다. 실제 우점종과 다릅니다.');
+    const finalResult=document.getElementById('finalResult');
+    finalResult.style.display='block';
+    finalResult.innerHTML=`
+      <b>❌ 우점종 판단 실패</b><br><br>
+      제출한 답: ${speciesName(answer)}<br>
+      실제 생태계 우점종: ${speciesName(actualDominant)}<br>
+      입력한 근거: ${reason}<br><br>
+      조사 자료와 계산값을 다시 확인하세요.
     `;
     return;
   }
@@ -828,7 +864,7 @@ function submitAnswer(){
     <b>제출한 우점종:</b> ${speciesName(answer)}<br><br>
     <b>입력한 판단 근거:</b><br>
     ${reason}<br><br>
-    상대밀도, 상대빈도, 상대피도의 합을 기준으로 ${speciesName(dominant)}이 우점종으로 판단되었습니다.<br><br>
+    상대밀도, 상대빈도, 상대피도의 합을 기준으로 ${speciesName(sampleDominant)}이 우점종으로 판단되었습니다.<br><br>
     <b>우점종을 판단하여 붕괴되는 생태계를 구한 당신은 영웅입니다!</b>
   `;
 
