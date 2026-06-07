@@ -97,6 +97,7 @@ button:active{transform:translateY(3px);box-shadow:0 3px 0 #4c8d32}
 .species2{width:14px;height:14px;background:#58d5ff}
 .species3{width:14px;height:14px;background:#ff7ad9}
 #quadrat{
+  touch-action:none;
   width:140px;
   height:140px;
   position:absolute;
@@ -838,14 +839,19 @@ let dragging=false;
 let offsetX=0;
 let offsetY=0;
 
-quadrat.addEventListener('mousedown',e=>{
+quadrat.style.touchAction='none';
+
+function startDrag(e){
   if(investigationFinished||finalSubmitted) return;
   dragging=true;
-  offsetX=e.offsetX;
-  offsetY=e.offsetY;
-});
+  const rect=quadrat.getBoundingClientRect();
+  offsetX=e.clientX-rect.left;
+  offsetY=e.clientY-rect.top;
+  quadrat.setPointerCapture?.(e.pointerId);
+  e.preventDefault();
+}
 
-document.addEventListener('mousemove',e=>{
+function moveDrag(e){
   if(!dragging) return;
   const rect=field.getBoundingClientRect();
   let x=e.clientX-rect.left-offsetX;
@@ -856,9 +862,21 @@ document.addEventListener('mousemove',e=>{
 
   quadrat.style.left=x+'px';
   quadrat.style.top=y+'px';
-});
+  e.preventDefault();
+}
 
-document.addEventListener('mouseup',()=>dragging=false);
+function endDrag(e){
+  dragging=false;
+  try{
+    quadrat.releasePointerCapture?.(e.pointerId);
+  }catch(err){}
+}
+
+quadrat.addEventListener('pointerdown',startDrag);
+quadrat.addEventListener('pointermove',moveDrag);
+quadrat.addEventListener('pointerup',endDrag);
+quadrat.addEventListener('pointercancel',endDrag);
+document.addEventListener('pointerup',endDrag);
 
 quadrat.style.left='280px';
 quadrat.style.top='280px';
