@@ -340,6 +340,18 @@ textarea{height:260px;resize:vertical}
   </div>
 </section>
 
+
+<section id="review" class="screen">
+  <div class="center">
+    <div class="warning">SAMPLE ANALYSIS COMPLETE</div>
+    <h1>조사 결과 분석 완료</h1>
+    <div id="reviewReport" class="story success-report"></div>
+    <br>
+    <button onclick="continueInvestigation()">조사 계속하기</button>
+    <button class="secondary" onclick="goScreen('final')">최종 보고서 다시 보기</button>
+  </div>
+</section>
+
 <section id="success" class="screen">
   <div class="center">
     <div class="warning">MISSION COMPLETE</div>
@@ -796,6 +808,15 @@ function lockFinalInputs(){
   if(memo) memo.disabled=true;
 }
 
+function continueInvestigation(){
+  if(finalSubmitted){
+    goScreen('success');
+    return;
+  }
+  investigationFinished=false;
+  goScreen('game');
+}
+
 function submitAnswer(){
   if(finalSubmitted){
     lockFinalInputs();
@@ -828,18 +849,21 @@ function submitAnswer(){
   }
 
   if(answer!==actualDominant && records.length<4){
-    alert('조사 결과로는 맞게 판단했지만, 실제 우점종과 다릅니다. 조사 방형구 횟수를 늘려주세요.');
-    const finalResult=document.getElementById('finalResult');
-    finalResult.style.display='block';
-    finalResult.innerHTML=`
-      <b>⚠️ 표본 조사 결과와 실제 우점종이 다릅니다.</b><br><br>
-      제출한 답: ${speciesName(answer)}<br>
-      현재 조사 자료로 계산한 우점종: ${speciesName(sampleDominant)}<br>
-      실제 생태계 우점종: ${speciesName(actualDominant)}<br>
-      현재 조사한 방형구 수: ${records.length}개<br><br>
-      조사 결과만 보면 판단은 맞지만, 조사 횟수가 부족해 실제 우점종과 다르게 나타났습니다.<br>
-      조사 방형구 횟수를 늘린 뒤 다시 판단하세요.
+    const reviewReport=document.getElementById('reviewReport');
+    reviewReport.innerHTML=`
+      <b>축하합니다!</b><br><br>
+      현재 조사한 방형구 자료를 바탕으로 우점종을 알맞게 판단했습니다.<br><br>
+      당신의 조사 결과에서는 <b>${speciesName(sampleDominant)}</b>이 우점종으로 나타났습니다.<br><br>
+      <hr style="border:0;border-top:1px solid rgba(255,255,255,.25);margin:20px 0;">
+      <b>그런데 정말 ${speciesName(sampleDominant)}이 우점종일까요?</b><br><br>
+      현재 조사한 방형구 수는 <b>${records.length}개</b>입니다.<br>
+      방형구 조사는 전체 생태계의 일부만 조사하는 방법이므로, 조사 횟수가 적으면 실제 생태계와 다른 결과가 나올 수 있습니다.<br><br>
+      <b>생태학자는 한 번의 조사만으로 결론을 내리지 않습니다.</b><br><br>
+      더 많은 방형구를 조사하면 현재 결과가 유지될까요?<br>
+      아니면 다른 종이 우점종으로 나타날까요?<br><br>
+      조사 화면으로 돌아가 추가 조사를 진행해 보세요.
     `;
+    goScreen('review');
     return;
   }
 
